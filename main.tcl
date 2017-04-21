@@ -291,6 +291,10 @@ oo::class create ::dApp::main {
 		
 
 	}
+    
+    method Env_Freebsd_Init {} {
+
+    }
 
 	method Locale_Init {} {
 		set appPath $::dApp::Env(appPath)
@@ -404,6 +408,22 @@ oo::class create ::dApp::main {
 
 		return
 	}
+
+    method Service_Freebsd_Init {} {
+        if {[catch {package require dbus-tcl}]} {return }
+        dbus connect
+
+        if {[llength $::argv] && ![catch {dbus call -dest org.got7.ezdit.dbus / org.got7.ezdit open {*}$::argv}]} {
+            dbus close
+            exit
+        }
+
+        dbus name -yield -replace org.got7.ezdit.dbus
+        dbus filter add -interface org.got7.ezdit
+        dbus method / open [list [self object] Argv_Handler]
+
+        return        
+    }
 
 	method Service_Windows_Init {} {
 		package require dde
